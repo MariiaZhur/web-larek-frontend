@@ -1,3 +1,4 @@
+
 // == Базовые alias'ы ==
 export type UUID = string;
 export type Url = string;
@@ -5,191 +6,66 @@ export type Email = string;
 export type PhoneNumber = string;
 export type Price = number;
 
+// интерфейс продукта / товара
+export interface IProduct {
+  id: UUID;
+  title: string;
+  description: string;
+  price: Price;
+  image: Url;
+  categories: string[];
+}
+
+// == Модель корзины ==
+export interface IBasket {
+  products: IProduct[]; // Список товаров в корзине
+  addProduct(product: IProduct): void; // Добавить товар
+  removeProduct(productId: UUID): void; // Удалить товар по ID
+  clear(): void; // Очистить корзину
+  getTotal(): Price; // Получить общую стоимость
+  getCount(): number; // Получить количество товаров
+  getProducts(): IProduct[]; // Получить копию списка товаров
+}
+
 // == Перечисления ==
 export enum PaymentMethod {
   Online = 'online',
   Cash = 'cash',
 }
 
-// == Основные модели ==
-export interface Product {
-  id: UUID;
-  title: string;
-  description: string;
-  price: Price;
-  image: Url;
-  categories: Category[];
-}
-
-export interface Category {
-  id: UUID;
-  title: string;
-}
-
-export interface CustomerInfo {
+//интерфейс информации о данных для связи
+export interface ICustomerInfo {
   email: Email;
   phone: PhoneNumber;
 }
 
-export interface DeliveryInfo {
+//интерфейс информации о доставке (адресс)
+export interface IShippingAndPaymentInfo {
   address: string;
+  paymentMethod: PaymentMethod; // Метод оплаты
 }
 
-export interface SubmitOrderResponse {
+// интерфейс для оформления заказа
+export interface IOrder {
+  products: IProduct[]; // Товары в заказе
+  shippingAndPaymentInfo: IShippingAndPaymentInfo; // Информация о доставке
+  customerInfo: ICustomerInfo; // Информация о клиенте
+}
+
+// интерфейс ответа от сервера при оформлении заказа
+export interface ISubmissionOrderResult {
   orderId: UUID;
   message: string;
   totalAmount: Price;
 }
 
-export interface Order {
-  products: Product[];
-  deliveryInfo: DeliveryInfo;
-  customerInfo: CustomerInfo;
-  paymentMethod: PaymentMethod;
+// Тип функции обработчика событий создаваемого функцией EvenntEmitter.trigger
+export type EventTrigger<T = unknown> = (event?: object) => void;
+// в дальнейшем будет перенесено
+export function onEvent<T>(emitter: EventEmitter, eventName: string) {
+  return (callback: (data: T) => void) => {
+    emitter.on(eventName, callback);
+  };
 }
 
-// == Модель корзины ==
-export class Cart {
-  products: Product[] = [];
-
-  addProduct(product: Product): void {
-    // implementation stub
-  }
-
-  removeProduct(productId: UUID): void {
-    // implementation stub
-  }
-
-  clear(): void {
-    // implementation stub
-  }
-
-  getTotal(): Price {
-    return 0;
-  }
-
-  getCount(): number {
-    return 0;
-  }
-
-  getProducts(): Product[] {
-    return this.products;
-  }
-}
-
-// == Сервисы ==
-export interface OrderService {
-  createOrder(
-    cart: Cart,
-    deliveryInfo: DeliveryInfo,
-    customerInfo: CustomerInfo,
-    paymentMethod: PaymentMethod
-  ): Order;
-}
-
-export interface ApiClient {
-  getProducts(): Promise<Product[]>;
-  getProduct(id: UUID): Promise<Product>;
-  submitOrder(order: Order): Promise<SubmitOrderResponse>;
-}
-
-// == EventEmitter ==
-export interface EventEmitter {
-  on<K extends keyof EventMap>(event: K, handler: (payload: EventMap[K]) => void): void;
-  off<K extends keyof EventMap>(event: K, handler: (payload: EventMap[K]) => void): void;
-  emit<K extends keyof EventMap>(event: K, payload: EventMap[K]): void;
-}
-
-// == Карта событий ==
-export interface EventMap {
-  buy: UUID;
-  remove: UUID;
-  clear: void;
-  order: void;
-  cancel: void;
-  submit: void;
-  'submit:success': SubmitOrderResponse;
-  'submit:error': string;
-  'step:ready:1': { deliveryInfo: DeliveryInfo; paymentMethod: PaymentMethod };
-  'step:ready:2': CustomerInfo;
-  'checkout:back': void;
-  showProductCard: UUID;
-  closeProductCard: void;
-  showCart: void;
-  closeCart: void;
-}
-
-// == Представления ==
-export interface CatalogView {
-  render(products: Product[]): void;
-  onProductClick(productId: UUID): void;
-}
-
-export interface ProductModalView {
-  open(product: Product): void;
-  close(): void;
-  onBuyClick(): void;
-  onRemoveClick(): void;
-}
-
-export interface CartView {
-  render(cart: Cart): void;
-  close(): void;
-  onOrderClick(): void;
-  onRemoveClick(productId: UUID): void;
-  onClearClick(): void;
-}
-
-export interface OrderView {
-  renderStep1(): void;
-  renderStep2(): void;
-  onSubmit(): void;
-  onCancel(): void;
-  getDeliveryInfo(): DeliveryInfo;
-  getCustomerInfo(): CustomerInfo;
-  getPaymentMethod(): PaymentMethod;
-  getProducts(): Product[];
-  getTotal(): Price;
-  getCount(): number;
-}
-
-export interface NotificationView {
-  showSuccess(response: SubmitOrderResponse): void;
-  showError(message: string): void;
-}
-
-// == Презентеры ==
-
-export abstract class ProductPresenter {
-  constructor(
-    public catalogView: CatalogView,
-    public productModalView: ProductModalView,
-    public apiClient: ApiClient,
-    public eventBus: EventEmitter
-  ) {}
-
-  abstract init(): void;
-}
-
-export abstract class CartPresenter {
-  constructor(
-    public cartView: CartView,
-    public cart: Cart,
-    public eventBus: EventEmitter
-  ) {}
-
-  abstract init(): void;
-}
-
-export abstract class OrderPresenter {
-  constructor(
-    public orderView: OrderView,
-    public cart: Cart,
-    public apiClient: ApiClient,
-    public orderService: OrderService,
-    public notificationView: NotificationView,
-    public eventBus: EventEmitter
-  ) {}
-
-  abstract  init(): void;
-}
+export type EventSubscription<T> = (callback: (data: T) => void) => void;
