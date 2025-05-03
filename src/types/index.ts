@@ -1,3 +1,4 @@
+import { EventSubscription, EventTrigger } from "../components/base/events";
 
 // == Базовые alias'ы ==
 export type UUID = string;
@@ -5,26 +6,31 @@ export type Url = string;
 export type Email = string;
 export type PhoneNumber = string;
 export type Price = number;
+export type ProductIDs = UUID[];
 
 // интерфейс продукта / товара
 export interface IProduct {
   id: UUID;
   title: string;
   description: string;
-  price: Price;
+  price: Price | null;
   image: Url;
-  categories: string[];
+  category: string;
+}
+
+export interface IProductListResponse {
+  total: number;
+  items: IProduct[];
 }
 
 // == Модель корзины ==
 export interface IBasket {
   products: IProduct[]; // Список товаров в корзине
+  total: Price;
   addProduct(product: IProduct): void; // Добавить товар
-  removeProduct(productId: UUID): void; // Удалить товар по ID
+  removeProduct(product: IProduct): void; // Удалить товар по ID
   clear(): void; // Очистить корзину
-  getTotal(): Price; // Получить общую стоимость
   getCount(): number; // Получить количество товаров
-  getProducts(): IProduct[]; // Получить копию списка товаров
 }
 
 // == Перечисления ==
@@ -47,25 +53,53 @@ export interface IShippingAndPaymentInfo {
 
 // интерфейс для оформления заказа
 export interface IOrder {
-  products: IProduct[]; // Товары в заказе
-  shippingAndPaymentInfo: IShippingAndPaymentInfo; // Информация о доставке
-  customerInfo: ICustomerInfo; // Информация о клиенте
+  payment: PaymentMethod;
+  email: string;
+  phone: string;
+  address: string;
+  total: number;
+  items: string[]; // product ids
 }
 
 // интерфейс ответа от сервера при оформлении заказа
 export interface ISubmissionOrderResult {
-  orderId: UUID;
-  message: string;
-  totalAmount: Price;
+  id: UUID;
+  total: Price;
 }
 
-// Тип функции обработчика событий создаваемого функцией EvenntEmitter.trigger
-export type EventTrigger<T = unknown> = (event?: object) => void;
-// в дальнейшем будет перенесено
-export function onEvent<T>(emitter: EventEmitter, eventName: string) {
-  return (callback: (data: T) => void) => {
-    emitter.on(eventName, callback);
-  };
+// ошибка формы
+export type FormErrors = Partial<Record<keyof IOrder, string>>;
+
+export enum AppEvent {
+  ProductShowDetails = 'product:showDetails',
+
+  BasketAddProduct = 'basket:addProduct',
+  BasketRemoveProduct = 'basket:removeProduct',
+  BasketShow = 'basket:show',
+  BasketRefreshView = 'basket:refreshView',
+
+  OrderShow = 'order:show',
+  OrderSubmit = 'order:submit',
+  OrderShowSubmissionResult = 'order:showSubmissionResult',
 }
 
-export type EventSubscription<T> = (callback: (data: T) => void) => void;
+export type ProductShowDetailsEventTrigger = EventTrigger<IProduct>;
+export type ProductShowDetailsEventSubscription = EventSubscription<IProduct>;
+
+export type ProductAddToBusketEventTrigger = EventTrigger<IProduct>;
+export type ProductAddToBusketEventSubscription = EventSubscription<IProduct>;
+
+export type BasketRefreshViewEventTrigger = EventTrigger<IBasket>;
+export type BasketRefreshViewEventSubscription = EventSubscription<IBasket>;
+
+export type BasketShowEventTrigger = EventTrigger<IBasket>;
+export type BasketShowEventSubscription = EventSubscription<IBasket>;
+
+export type OrderShowEventTrigger = EventTrigger<IBasket>;
+export type OrderShowEventSubscription = EventSubscription<IBasket>;
+
+export type OrderSubmitEventTrigger = EventTrigger<IOrder>;
+export type OrderSubmitEventSubscriptiion = EventSubscription<IOrder>;
+
+export type SubmissionOrderResultShowEventTrigger = EventTrigger<ISubmissionOrderResult>;
+export type SubmissionOrderResultShowEventSubscription = EventSubscription<ISubmissionOrderResult>;

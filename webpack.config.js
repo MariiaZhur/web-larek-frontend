@@ -12,18 +12,20 @@ require('dotenv').config({
 
 const isProduction = process.env.NODE_ENV == "production";
 
-const stylesHandler = MiniCssExtractPlugin.loader;
+const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
 
 const config = {
   entry: "./src/index.ts",
   devtool: "source-map",
   output: {
+    filename: "bundle.js",
     path: path.resolve(__dirname, "dist"),
+    publicPath: "/", // обязательно для devServer
   },
   devServer: {
     open: true,
     host: "localhost",
-    watchFiles: ["src/pages/*.html"],
+    watchFiles: ["src/**/*"],
     hot: true
   },
   plugins: [
@@ -76,7 +78,7 @@ const config = {
     extensions: [".tsx", ".ts", ".jsx", ".js", "..."],
   },
   optimization: {
-    minimize: true,
+    minimize: isProduction,
     minimizer: [new TerserPlugin({
       terserOptions: {
         keep_classnames: true,

@@ -8,11 +8,21 @@ type EmitterEvent = {
     data: unknown
 };
 
+export type EventTrigger<T = object> = (data: T) => void;
+
+export type EventSubscription<T> = (callback: (data: T) => void) => void;
+
 export interface IEvents {
     on<T extends object>(event: EventName, callback: (data: T) => void): void;
-    emit<T extends object>(event: string, data?: T): void;
-    trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void;
+    off(event: EventName, callback: Subscriber): void;
+    // emit<T extends object>(event: string, data?: T): void;
+    onAll(callback: (event: EmitterEvent) => void): void;
+    offAll(): void;
+    createTrigger<T extends object>(event: string, context?: Partial<T>): EventTrigger<T>;
+    createSubscription<T extends object>(event: EventName): EventSubscription<T>;
 }
+
+
 
 /**
  * Брокер событий, классическая реализация
@@ -20,7 +30,7 @@ export interface IEvents {
  * или слушать события по шаблону например
  */
 export class EventEmitter implements IEvents {
-    _events: Map<EventName, Set<Subscriber>>;
+    private _events: Map<EventName, Set<Subscriber>>;
 
     constructor() {
         this._events = new Map<EventName, Set<Subscriber>>();
@@ -51,7 +61,7 @@ export class EventEmitter implements IEvents {
     /**
      * Инициировать событие с данными
      */
-    emit<T extends object>(eventName: string, data?: T) {
+    private emit<T extends object>(eventName: string, data?: T) {
         this._events.forEach((subscribers, name) => {
             if (name === '*') subscribers.forEach(callback => callback({
                 eventName,
@@ -76,17 +86,22 @@ export class EventEmitter implements IEvents {
     offAll() {
         this._events = new Map<string, Set<Subscriber>>();
     }
+    
+    /**
+      * Создаем триггер для события
+      */
+    createTrigger<T extends object>(eventName: string): EventTrigger<T> {
+        return (data: T) => 
+            this.emit(eventName, data)
+            ;
+        };
 
     /**
-     * Сделать коллбек триггер, генерирующий событие при вызове
+     * Создаем подписку на событие
      */
-    trigger<T extends object>(eventName: string, context?: Partial<T>) {
-        return (event: object = {}) => {
-            this.emit(eventName, {
-                ...(event || {}),
-                ...(context || {})
-            });
+    createSubscription<T extends object>(eventName: EventName): EventSubscription<T> {
+        return (callback: (data: T) => void) => {
+            this.on(eventName, callback);
         };
     }
 }
-
