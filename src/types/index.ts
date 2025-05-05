@@ -1,4 +1,4 @@
-import { EventSubscription, EventTrigger } from "../components/base/events";
+import { EventSubscription, EventTrigger } from '../components/base/events';
 
 // == Базовые alias'ы ==
 export type UUID = string;
@@ -10,77 +10,77 @@ export type ProductIDs = UUID[];
 
 // интерфейс продукта / товара
 export interface IProduct {
-  id: UUID;
-  title: string;
-  description: string;
-  price: Price | null;
-  image: Url;
-  category: string;
+	id: UUID;
+	title: string;
+	description: string;
+	price: Price | null;
+	image: Url;
+	category: string;
 }
 
 export interface IProductListResponse {
-  total: number;
-  items: IProduct[];
+	total: number;
+	items: IProduct[];
 }
 
 // == Модель корзины ==
 export interface IBasket {
-  products: IProduct[]; // Список товаров в корзине
-  total: Price;
-  addProduct(product: IProduct): void; // Добавить товар
-  removeProduct(product: IProduct): void; // Удалить товар по ID
-  clear(): void; // Очистить корзину
-  getCount(): number; // Получить количество товаров
+	products: IProduct[]; // Список товаров в корзине
+	total: Price;
+	addProduct(product: IProduct): void; // Добавить товар
+	removeProduct(product: IProduct): void; // Удалить товар по ID
+	clear(): void; // Очистить корзину
+	getCount(): number; // Получить количество товаров
 }
 
 // == Перечисления ==
 export enum PaymentMethod {
-  Online = 'online',
-  Cash = 'cash',
+	Online = 'online',
+	Cash = 'cash',
 }
 
 //интерфейс информации о данных для связи
 export interface ICustomerInfo {
-  email: Email;
-  phone: PhoneNumber;
+	email: Email;
+	phone: PhoneNumber;
 }
 
 //интерфейс информации о доставке (адресс)
 export interface IShippingAndPaymentInfo {
-  address: string;
-  paymentMethod: PaymentMethod; // Метод оплаты
+	address: string;
+	paymentMethod: PaymentMethod; // Метод оплаты
 }
 
 // интерфейс для оформления заказа
 export interface IOrder {
-  payment: PaymentMethod;
-  email: string;
-  phone: string;
-  address: string;
-  total: number;
-  items: string[]; // product ids
+	payment: PaymentMethod;
+	email: string;
+	phone: string;
+	address: string;
+	total: number;
+	items: string[]; // product ids
 }
 
 // интерфейс ответа от сервера при оформлении заказа
 export interface ISubmissionOrderResult {
-  id: UUID;
-  total: Price;
+	id: UUID;
+	total: Price;
 }
 
 // ошибка формы
 export type FormErrors = Partial<Record<keyof IOrder, string>>;
 
 export enum AppEvent {
-  ProductShowDetails = 'product:showDetails',
+	ProductShowDetails = 'product:showDetails',
 
-  BasketAddProduct = 'basket:addProduct',
-  BasketRemoveProduct = 'basket:removeProduct',
-  BasketShow = 'basket:show',
-  BasketRefreshView = 'basket:refreshView',
+	BasketAddProduct = 'basket:addProduct',
+	BasketRemoveProduct = 'basket:removeProduct',
+	BasketShow = 'basket:show',
+	BasketRefreshView = 'basket:refreshView',
 
-  OrderShow = 'order:show',
-  OrderSubmit = 'order:submit',
-  OrderShowSubmissionResult = 'order:showSubmissionResult',
+	OrderShow = 'order:show',
+	OrderSubmit = 'order:submit',
+	OrderShowSubmissionResult = 'order:showSubmissionResult',
 }
 
 export type ProductShowDetailsEventTrigger = EventTrigger<IProduct>;
@@ -101,5 +101,7 @@ export type OrderShowEventSubscription = EventSubscription<IBasket>;
 export type OrderSubmitEventTrigger = EventTrigger<IOrder>;
 export type OrderSubmitEventSubscriptiion = EventSubscription<IOrder>;
 
-export type SubmissionOrderResultShowEventTrigger = EventTrigger<ISubmissionOrderResult>;
-export type SubmissionOrderResultShowEventSubscription = EventSubscription<ISubmissionOrderResult>;
+export type SubmissionOrderResultShowEventTrigger =
+	EventTrigger<ISubmissionOrderResult>;
+export type SubmissionOrderResultShowEventSubscription =
+	EventSubscription<ISubmissionOrderResult>;

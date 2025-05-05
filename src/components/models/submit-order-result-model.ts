@@ -1,6 +1,6 @@
-import { ISubmissionOrderResult } from "../../types";
+import { ISubmissionOrderResult } from '../../types';
 
 export class SubmitOrderResultModel implements ISubmissionOrderResult {
-  id: string;
-  total: number;
+	id: string;
+	total: number;
 }
